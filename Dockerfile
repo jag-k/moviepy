@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.11-slim
 
 # Install numpy using system package manager
 RUN apt-get -y update && apt-get -y install ffmpeg imagemagick
