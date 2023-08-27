@@ -7,6 +7,11 @@ env:
 on:
   push:
   workflow_dispatch:
+    - inputs:
+        tag:
+          description: 'Tag to use for the image'
+          required: true
+          default: 'latest'
   release:
 
 permissions:
@@ -40,12 +45,24 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
-        if: github.event_name != 'release'
+        if: github.event_name == 'push'
         with:
           context: .
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.slug.outputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.slug.outputs.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
